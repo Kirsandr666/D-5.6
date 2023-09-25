@@ -1,0 +1,104 @@
+Запуск Django shell:
+python manage.py shell
+
+1) Создать двух пользователей с помощью метода User.objects.create_user:
+from NewsPaper.models import User
+u1 = User.objects.create_user('Екатерина')
+u2 = User.objects.create_user('Наталья')
+
+2) Создать два объекта модели Author, связанные с пользователями:
+from NewsPaper.models import Author
+Author.objects.create(user=u1)
+Author.objects.create(user=u2)
+
+
+3) Добавить 4 категории в модель Category:
+from NewsPaper.models import Category
+Category.objects.create(name_category = 'Политика')
+Category.objects.create(name_category = 'Искусство')
+Category.objects.create(name_category = 'Шоу-бизенс')
+Category.objects.create(name_category = 'Досуг')
+
+4) Добавить 2 статьи и 1 новость:
+from NewsPaper.models import Post
+author = Author.objects.get(id=1)
+author2 = Author.objects.get(id=2)
+Post.objects.create(author=author, post_type = 'Н', title = 'Венесуэла стремится стать членом БРИКС', text = 'Венесуэла стремится к тому, чтобы в ближайшее время стать членом БРИКС, заявил глава МИД страны Иван Хиль Пинто. Он отметил, что кандидатуру страны решительно поддерживают Бразилия, Россия, Китай и ЮАР.')
+Post.objects.create(author=author, post_type = 'С', title = 'Парк Зарядье',text =
+'Общественное пространство Москвы, городской культурно-просветительский центр «Зарядье» — объект в одноимённом историческом районе Москвы, созданный на месте снесённой в 2006 году гостиницы «Россия». Расположен на территории площадью в 13га между Китайгородским проездом, улицей Варваркой и Москворецкой набережной.')
+Post.objects.create(author= author2, post_type = 'С', title = 'Список самых кассовых концертных туров',
+text = '1. The Rolling Stones четырежды устанавливали рекорд по сборам, последний раз с A Bigger Bang Tour (сейчас на втором месте). 2. Madonna заняла первые два места как самая кассовая сольная исполнительница с турами Sticky & Sweet Tour и The MDNA Tour. 3. Lady Gaga установила рекорд по сборам для дебютного тура со своим The Monster Ball Tour.')
+
+5)Присвоить им категории (как минимум в одной статье/новости должно быть не меньше 2 категорий):
+p1 = Post.objects.get(id=1)
+p1.post_category.add(Category.objects.get(id=1))
+p2 = Post.objects.get(id=2)
+p2.post_category.add(Category.objects.get(id=4))
+p2.post_category.add(Category.objects.get(id=2))
+p3 = Post.objects.get(id=3)
+p3.post_category.add(Category.objects.get(id=3))
+p3.post_category.add(Category.objects.get(id=4))
+
+6) Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть как минимум один комментарий):
+from NewsPaper.models import Comment
+Comment.objects.create(post = Post.objects.get(id=1), user = User.objects.get(id=1), comment_text = 'Интересно когда примут')
+Comment.objects.create(post=Post.objects.get(id=2), user = User.objects.get(id=1), comment_text = 'Давно хотела сходить посмотреть')
+Comment.objects.create(post=Post.objects.get(id=2), user=User.objects.get(id=2), comment_text = 'Очень красивый парк')
+Comment.objects.create(post=Post.objects.get(id=3), user=User.objects.get(id=2), comment_text = 'Интересно кто следующим побьет рекорды')
+
+7) Применяя функции like() и dislike() к статьям/новостям и комментариям, скорректировать рейтинги этих объектов.
+
+// Комментарии
+Comment.objects.get(id=1).like()
+Comment.objects.get(id=1).like()
+Comment.objects.get(id=1).like()
+Comment.objects.get(id=1).dislike()
+Comment.objects.get(id=1).dislike()
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=3).like()
+Comment.objects.get(id=3).like()
+Comment.objects.get(id=3).dislike()
+Comment.objects.get(id=4).like()
+Comment.objects.get(id=4).like()
+Comment.objects.get(id=4).like()
+Comment.objects.get(id=4).like()
+Comment.objects.get(id=4).like()
+Comment.objects.get(id=4).like()
+
+// Посты
+Post.objects.get(id=1).like()
+Post.objects.get(id=1).dislike()
+Post.objects.get(id=2).like()
+Post.objects.get(id=2).like()
+Post.objects.get(id=2).dislike()
+Post.objects.get(id=3).like()
+Post.objects.get(id=3).like()
+Post.objects.get(id=3).like()
+
+8) Обновить рейтинги пользователей:
+author.update_rating()
+author2.update_rating()
+
+9) Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта):
+best_author = Author.objects.order_by('-author_rating').values('user__username', 'author_rating').first()
+print(best_author['user__username'], best_author['author_rating'])
+
+
+10) Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках к этой статье:
+a = Post.objects.order_by('-rating')[0]
+a.time_create
+a.author.user.username
+a.rating
+a.title
+a.preview()
+
+11) Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье:
+comments = Comment.objects.all().filter(post_id=a.id)
+for comment in comments:
+    print(comment.created_com)
+    print(User.objects.get(id=comment.user_id))
+    print(comment.rating_com)
+    print(comment.comment_text)
